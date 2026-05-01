@@ -1,5 +1,6 @@
 package br.com.exercicios.spring.exchange.entity;
 
+import br.com.exercicios.spring.exchange.entity.enums.Risco;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,8 @@ public class Cryptomoeda {
     private String abreviacao;
     private Double preco;
     private Double volumeNegociado;
-    private String nivelDeRisco;
+
+    @Enumerated(EnumType.STRING)
+    private Risco nivelDeRisco;
 }
 
