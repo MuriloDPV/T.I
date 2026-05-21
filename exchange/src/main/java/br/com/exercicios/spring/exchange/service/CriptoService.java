@@ -24,13 +24,6 @@ public class CriptoService {
             throw new MinhaException("Já existe uma criptomoeda com esse nome");
         }
 
-        Optional<Cryptomoeda> criptoSalvaPorAbreviacao = criptoRepository.findByAbreviacao(cripto.getAbreviacao());
-
-        if (criptoSalvaPorAbreviacao.isPresent()){
-            throw new MinhaException("Já existe uma criptomoeda com essa abreviacao");
-        }
-
-
 
         return criptoRepository.save(cripto);
     }
