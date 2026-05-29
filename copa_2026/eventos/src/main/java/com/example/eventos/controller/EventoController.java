@@ -1,54 +1,58 @@
 package com.example.eventos.controller;
 
-import com.example.eventos.dtos.EventoListResponseDTO;
 import com.example.eventos.dtos.EventoRequestDTO;
 import com.example.eventos.dtos.EventoResponseDTO;
+import com.example.eventos.entity.Eventos;
+import com.example.eventos.handlers.MinhaException;
 import com.example.eventos.service.EventoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/eventos")
-public class EventoController {
 
+public class EventoController {
     @Autowired
     private EventoService eventoService;
-
-    // POST — Cadastrar evento
+//
     @PostMapping
-    public ResponseEntity<EventoResponseDTO> cadastrar(@RequestBody @Valid EventoRequestDTO dto) {
-        EventoResponseDTO criado = eventoService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(criado);
-    }
+    public EventoResponseDTO cadastrarEvento(@RequestBody @Valid EventoRequestDTO dto) {
 
-    // GET ALL — Listar todos os eventos
+          return eventoService.salvarEvento(dto);
+
+   }
+
     @GetMapping
-    public ResponseEntity<List<EventoListResponseDTO>> listarTodos() {
-        return ResponseEntity.ok(eventoService.listarTodos());
+    public List<EventoResponseDTO> buscarTodosOsEventos() {
+        return eventoService.listarTodosOsEventos();
     }
 
-    // GET — Buscar evento por ID
-    @GetMapping("/{id}")
-    public ResponseEntity<EventoResponseDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(eventoService.buscarPorId(id));
+
+
+
+    @DeleteMapping("/id/{id}")
+    public String deletarEvento(@PathVariable Long id) {
+        return eventoService.deletarEventoPorId(id);
     }
 
-    // PUT — Atualizar evento (payload igual ao POST)
-    @PutMapping("/{id}")
-    public ResponseEntity<EventoResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid EventoRequestDTO dto) {
-        return ResponseEntity.ok(eventoService.atualizar(id, dto));
+
+    @GetMapping("/id/{id}")
+    public EventoResponseDTO buscarEventoPorId(@PathVariable Long id) {
+        return eventoService.listarEventoPorID(id);
     }
 
-    // DELETE — Remover evento
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remover(@PathVariable Long id) {
-        eventoService.remover(id);
-        return ResponseEntity.noContent().build();
+
+    @PutMapping("/id/{id}")
+    public EventoResponseDTO editarEventoPorID(@PathVariable Long id, @RequestBody @Valid EventoRequestDTO eventoAtualizada) {
+        return eventoService.editarEventoPorID(id, eventoAtualizada);
+
+    }
+
+    @PutMapping("/descricao/{descricao}")
+    public Eventos editarEventoPorDescricao(@PathVariable String descricao, @RequestBody @Valid Eventos eventoAtualizada) {
+        return eventoService.editarEventoPorDescricao(descricao, eventoAtualizada);
     }
 }
-

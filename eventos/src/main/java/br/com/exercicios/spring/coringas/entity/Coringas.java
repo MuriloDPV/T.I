@@ -1,63 +1,45 @@
-package com.example.eventos.entity;
+package br.com.exercicios.spring.coringas.entity;
 
-import com.example.eventos.entity.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
-
 @Entity
-@Table(name = "eventos", schema = "public")
-public class Eventos {
-
+@AllArgsConstructor
+@Data
+@NoArgsConstructor
+@Builder
+public class Coringas {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String titulo;
-
     private String descricao;
-
     private String palestrante;
-
     private String emailContato;
-
     private Integer cargaHoraria;
-
-    private LocalDate dataEvento;
-
+    private LocalDate dataCoringa;
+    private LocalDate dataCadastro;
     private Integer quantidadeVagas;
-
     private BigDecimal valorInscricao;
-
     @Enumerated(EnumType.STRING)
-    private String status;
-
-    @Column(updatable = false)
-    private LocalDateTime dataCadastro;
-
-    @Column(updatable = false)
+    private Status status;
+    @Column(nullable = false, unique = true, updatable = false)
     private String codigoInterno;
 
     @PrePersist
-    void prePersist() {
+    public void prePersist() {
         if (dataCadastro == null) {
-            dataCadastro = LocalDateTime.now();
+            dataCadastro = LocalDate.now();
         }
         if (codigoInterno == null || codigoInterno.isBlank()) {
             codigoInterno = UUID.randomUUID().toString();
         }
     }
 }
-

@@ -1,18 +1,16 @@
 package com.example.eventos.service;
 
-import com.example.eventos.dtos.EventoListResponseDTO;
 import com.example.eventos.dtos.EventoRequestDTO;
 import com.example.eventos.dtos.EventoResponseDTO;
 import com.example.eventos.entity.Eventos;
 import com.example.eventos.handlers.MinhaException;
-import com.example.eventos.handlers.RecursoNaoEncontradoException;
 import com.example.eventos.repository.EventoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class EventoService {
@@ -20,87 +18,119 @@ public class EventoService {
     @Autowired
     private EventoRepository eventoRepository;
 
-    @Transactional
-    public EventoResponseDTO cadastrar(EventoRequestDTO dto) {
-        if (eventoRepository.existsByTitulo(dto.getTitulo())) {
-            throw new MinhaException("Ja existe um evento com esse titulo");
+    public EventoResponseDTO salvarEvento(EventoRequestDTO evento) {
+        Optional<EventoResponseDTO>  eventoSalvaPorTitulo = eventoRepository.findByTitulo(evento.getTitulo());
+
+        if (!eventoSalvaPorTitulo.isEmpty()){
+            throw new MinhaException("Já existe uma evento com esse titulo");
         }
 
-        Eventos evento = new Eventos();
-        applyDto(evento, dto);
-        Eventos salvo = eventoRepository.save(evento);
-        return toResponseDto(salvo);
+
+
+
+
+
+
+        return eventoRepository.save(evento);
     }
 
-    @Transactional(readOnly = true)
-    public EventoResponseDTO buscarPorId(Long id) {
-        Eventos evento = eventoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Evento nao encontrado para o ID: " + id));
-        return toResponseDto(evento);
+    public List<EventoResponseDTO> listarTodosOsEventos() {
+        return eventoRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    public List<EventoListResponseDTO> listarTodos() {
-        return eventoRepository.findAllByOrderByDataEventoAsc().stream()
-                .map(this::toListResponseDto)
-                .collect(Collectors.toList());
+
+//    public List<Eventos> listarEventoPorPalestrante() {
+//        return eventoRepository.findAllByOrderByPalestranteAsc();
+//    }
+
+
+
+
+    @Transactional
+    public String deletarEventoPorId(Long id) {
+        Optional<EventosResponseDTO> evento = eventoRepository.findById(id);
+        if (evento.isPresent()) {
+            return evento.get().toString();
+        }
+        return "Evento nao encontrado para o ID: " + id;
     }
 
     @Transactional
-    public EventoResponseDTO atualizar(Long id, EventoRequestDTO dto) {
-        Eventos existente = eventoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Evento nao encontrado para o ID: " + id));
-
-        // Nao permite alterar: id, dataCadastro, codigoInterno (campos nao estao no DTO)
-        applyDto(existente, dto);
-        Eventos salvo = eventoRepository.save(existente);
-        return toResponseDto(salvo);
+    public EventoResponseDTO listarEventoPorID(Long id) {
+        Optional<EventoRequestDTO> eventos = eventoRepository.findById(id);
+        if (eventos.isPresent()) {
+            return eventos.get();
+        }
+        throw new MinhaException( "Evento nao encontrado para o ID: " + id);
     }
 
-    @Transactional
-    public void remover(Long id) {
-        Eventos existente = eventoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Evento nao encontrado para o ID: " + id));
-        eventoRepository.delete(existente);
+//    @Transactional
+//    public String deletarEventoPorDescricao(String descricao) {
+//        Optional<Eventos> evento = eventoRepository.findByDescricao(descricao);
+//        if (evento.isPresent()) {
+//            eventoRepository.deleteByDescricao(descricao);
+//            return "Eventos deletada com sucesso!";
+//        }
+//        return "Eventos nao encontrada para a descricao: " + descricao;
+//    }
+
+    public EventoResponseDTO editarEventoPorID(Long id, EventoRequestDTO eventoAtualizada) {
+        Optional<Eventos> evento = eventoRepository.findById(id);
+        if (evento.isPresent()) {
+            EventoRequestDTO eventoExistente = evento.get();
+            eventoExistente.setDescricao(eventoAtualizada.getDescricao() != null ?
+                    eventoAtualizada.getDescricao() : eventoExistente.getDescricao());
+            eventoExistente.setTitulo(eventoAtualizada.getTitulo() != null ?
+                    eventoAtualizada.getTitulo() : eventoExistente.getTitulo());
+            eventoExistente.setPalestrante(eventoAtualizada.getPalestrante() != null ?
+                    eventoAtualizada.getPalestrante() : eventoExistente.getPalestrante());
+
+            eventoExistente.setEmailContato(eventoAtualizada.getEmailContato() != null ?
+                    eventoAtualizada.getEmailContato() : eventoExistente.getEmailContato());
+
+            eventoExistente.setValorInscricao(eventoAtualizada.getValorInscricao() != null ?
+                    eventoAtualizada.getValorInscricao() : eventoExistente.getValorInscricao());
+
+            eventoExistente.setQuantidadeVagas(eventoAtualizada.getQuantidadeVagas() != null ?
+                    eventoAtualizada.getQuantidadeVagas() : eventoExistente.getQuantidadeVagas());
+
+            eventoExistente.setCargaHoraria(eventoAtualizada.getCargaHoraria() != null ?
+                    eventoAtualizada.getCargaHoraria() : eventoExistente.getCargaHoraria());
+            return eventoRepository.save(eventoExistente);
+        }
+        throw new RuntimeException("Evento nao encontrada para o id: " + id);
     }
 
-    private void applyDto(Eventos evento, EventoRequestDTO dto) {
-        evento.setTitulo(dto.getTitulo());
-        evento.setDescricao(dto.getDescricao());
-        evento.setPalestrante(dto.getPalestrante());
-        evento.setEmailContato(dto.getEmailContato());
-        evento.setCargaHoraria(dto.getCargaHoraria());
-        evento.setDataEvento(dto.getDataEvento());
-        evento.setQuantidadeVagas(dto.getQuantidadeVagas());
-        evento.setValorInscricao(dto.getValorInscricao());
-        evento.setStatus(dto.getStatus());
+    public Eventos editarEventoPorDescricao(String descricao, Eventos eventoAtualizada) {
+        Optional<Eventos> evento = eventoRepository.findByDescricao(descricao);
+        if (evento.isPresent()) {
+            Eventos eventoExistente = evento.get();
+            eventoExistente.setDescricao(eventoAtualizada.getDescricao());
+            eventoExistente.setTitulo(eventoAtualizada.getTitulo());
+            eventoExistente.setPalestrante(eventoAtualizada.getPalestrante());
+            eventoExistente.setEmailContato(eventoAtualizada.getEmailContato());
+            eventoExistente.setCargaHoraria(eventoAtualizada.getCargaHoraria());
+            eventoExistente.setDataEvento(eventoAtualizada.getDataEvento());
+            eventoExistente.setValorInscricao(eventoAtualizada.getValorInscricao());
+            eventoExistente.setQuantidadeVagas(eventoAtualizada.getQuantidadeVagas());
+
+
+
+
+
+
+            return eventoRepository.save(eventoExistente);
+        }
+        throw new RuntimeException("Evento nao encontrada para a descricao: " + descricao);
     }
 
-    private EventoResponseDTO toResponseDto(Eventos e) {
-        return EventoResponseDTO.builder()
-                .id(e.getId())
-                .titulo(e.getTitulo())
-                .descricao(e.getDescricao())
-                .palestrante(e.getPalestrante())
-                .emailContato(e.getEmailContato())
-                .cargaHoraria(e.getCargaHoraria())
-                .dataEvento(e.getDataEvento())
-                .quantidadeVagas(e.getQuantidadeVagas())
-                .valorInscricao(e.getValorInscricao())
-                .status(e.getStatus())
-                .dataCadastro(e.getDataCadastro())
-                .build();
-    }
 
-    private EventoListResponseDTO toListResponseDto(Eventos e) {
-        return EventoListResponseDTO.builder()
-                .id(e.getId())
-                .titulo(e.getTitulo())
-                .dataEvento(e.getDataEvento())
-                .status(e.getStatus())
-                .quantidadeVagas(e.getQuantidadeVagas())
-                .valorInscricao(e.getValorInscricao())
-                .build();
-    }
+
+
+
+
+
+
+
+
 }
-

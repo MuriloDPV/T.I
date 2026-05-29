@@ -1,5 +1,6 @@
-package com.example.eventos.dtos;
+package br.com.exercicios.spring.coringas.dto;
 
+import br.com.exercicios.spring.coringas.entity.Status;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,51 +11,26 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @AllArgsConstructor
-    @Builder
-    @Data
-    @NoArgsConstructor
-
-
-public class EventoRequestDTO {
-
+@NoArgsConstructor
+@Data
+@Builder
+public class CoringaRequestDTO {
     @NotBlank
     private String titulo;
-
-
-
     @NotBlank
     private String descricao;
-
     @NotBlank
     private String palestrante;
-
     @Email
     private String emailContato;
-
     @Min(1)
     private Integer cargaHoraria;
-
-    @FutureOrPresent
-    private LocalDate dataEvento;
-
-
     @Positive
     private Integer quantidadeVagas;
-
-
+    @FutureOrPresent
+    private LocalDate dataCoringa;
     @DecimalMin("0.0")
     private BigDecimal valorInscricao;
-
-
     @NotNull
-    private String status;
-
-
-
-
-
-
-
-
-
+    private Status status;
 }
